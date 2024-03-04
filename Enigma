@@ -1,0 +1,87 @@
+from string import ascii_uppercase
+import string
+def caesar(text, key): 
+    txt = []
+    text = text.upper()
+    for ch in text: 
+        if ch in ascii_uppercase:
+            txt.append(chr((ord(ch)%65+key)%26+65))
+    return ''.join(txt)
+
+def rotor(text, n, reverse = False): 
+    text = text.upper()
+    rotors = ['ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'EKMFLGDQVZNTOWYHXUSPAIBRCJ', 'AJDKSIRUXBLHWTMCQGZNPYFVOE', 'BDFHJLCPRTXVZNYEIWGAKMUSQO']
+    a = 0
+    if reverse: 
+        a, n = n, a
+    s = ''
+    for letter in text: 
+        if letter in ascii_uppercase: 
+            s += rotors[n] [rotors [a].index(letter)]
+    return s
+
+def commutate(pairs): 
+    test = pairs.upper().split()
+    alph = ''
+    ctr = 0
+    for pair in test: 
+        if len(pair) != 2: 
+            return -1
+        for word in pair: 
+            ctr += 1
+            if word not in alph: 
+                alph += word
+            else: 
+                return -1
+            if ctr == 3: 
+                return -1
+        ctr = 0
+    return test
+
+
+def reflector(text, n): 
+    text = text.upper()
+    REFLECTORS = {0: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 1: 'YRUHQSLDPXNGOKMIEBFZCWVJAT',}
+    refs = [REFLECTORS[0], REFLECTORS[n]]
+    s = ''
+    for element in text: 
+        s += refs[n][refs[0].index(element)]
+    return s
+
+def reflex(letter, comms): 
+    if len(comms) == 2: 
+        if letter in comms: 
+            return comms[comms.index(letter)-1]
+    for i in range(len(comms)): 
+        if letter in comms[i]: 
+            return comms[i][comms[i].index(letter)-1]
+    return letter
+
+def enigma(text, ref, rot1, shift1, rot2, shift2, rot3, shift3, pairs = ''):
+    comms = commutate(pairs) #returns -1 if pairs inputted incorrectly
+    if comms == -1: 
+        return 'Извините, невозможно произвести коммутацию' 
+    rotorjumps = [17, 5, 22]
+    rets = ''
+    text = caesar(text, 0)
+    r = ''
+    #print('rotor shifts are {}, {} and {} now and rets is {}'.format(shift3, shift2, shift1, rets))
+    for letter in text: 
+        shift3 += 1
+        if (shift2%26+1) == rotorjumps[rot2-1]: 
+            shift2 += 1
+            shift1 += 1
+        if (shift3%26) == rotorjumps[rot3-1]: 
+            shift2 +=1
+            
+        #print('\n    now rotor shifts are {}, {} and {} and rets is {} \n'.format(shift3%26, shift2%26, shift1%26, rets))   
+        r = str(reflex(letter, comms))
+        r = caesar(rotor(caesar(r, shift3), rot3), -1*shift3) #text went through 3rd rotor
+        r = caesar(rotor(caesar(r, shift2), rot2), -1*shift2) #through 2nd rotor\print
+        r = reflector(caesar(rotor(caesar(r, shift1), rot1), -1*shift1), ref) #1nd rotor and reflector
+        r = caesar(rotor(caesar(r, shift1), rot1, True), -1*shift1) #backward 1st enc
+        r = caesar(rotor(caesar(r, shift2), rot2, True), -1*shift2)
+        r = caesar(rotor(caesar(r, shift3), rot3, True), -1*shift3)
+        r = str(reflex(r, comms))
+        rets += r
+    return rets
